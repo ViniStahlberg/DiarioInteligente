@@ -4,6 +4,9 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,24 +18,27 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        // Recupera valor salvo ao girar a tela
         quantidadeAberturas = savedInstanceState?.getInt("aberturas") ?: 0
-
         quantidadeAberturas++
+
+        val horarioAtual = SimpleDateFormat(
+            "HH:mm:ss",
+            Locale.getDefault()
+        ).format(Date())
 
         Toast.makeText(
             this,
-            "MoodLog iniciado $quantidadeAberturas vez(es)",
-            Toast.LENGTH_SHORT
+            "MoodLog aberto às $horarioAtual",
+            Toast.LENGTH_LONG
         ).show()
 
-        supportActionBar?.title = "MoodLog - Diário de Humor"
+        supportActionBar?.title =
+            "MoodLog • Sessão $quantidadeAberturas"
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        // Salva quantidade de aberturas
         outState.putInt("aberturas", quantidadeAberturas)
     }
 }
