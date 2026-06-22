@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "237968180971",
+    "project_id": "smartdiary-6810f",
+    "storage_bucket": "smartdiary-6810f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:237968180971:android:cff7ec1174b2db059820ae",
+        "android_client_info": {
+          "package_name": "com.example.smartdiary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlXY4_p8st8XQTH-5IgJKLPXpPSi7_qhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:237968180971:android:19af4634e95e38e59820ae",
+        "android_client_info": {
+          "package_name": "com.smartdiary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlXY4_p8st8XQTH-5IgJKLPXpPSi7_qhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
