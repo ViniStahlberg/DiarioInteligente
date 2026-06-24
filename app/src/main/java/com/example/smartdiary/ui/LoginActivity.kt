@@ -1,50 +1,57 @@
 package com.smartdiary.ui
 
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
 import com.smartdiary.databinding.ActivityLoginBinding
 import com.smartdiary.helper.FeedbackHelper
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var prefs: SharedPreferences
-
-    // Credenciais fixas locais (sem Firebase)
-    companion object {
-        const val VALID_USER = "admin"
-        const val VALID_PASS = "1234"
-    }
+    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        prefs = getSharedPreferences("smart_diary_prefs", MODE_PRIVATE)
+        binding.btnLogin.setOnClickListener { attemptLogin() }
 
-        binding.btnLogin.setOnClickListener {
-            val user = binding.etUsername.text.toString().trim()
-            val pass = binding.etPassword.text.toString().trim()
-            attemptLogin(user, pass)
+        binding.tvGoToRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
     }
 
-    private fun attemptLogin(user: String, pass: String) {
-        if (user == VALID_USER && pass == VALID_PASS) {
-            prefs.edit().putBoolean("is_logged_in", true).apply()
-            FeedbackHelper.vibrate(this)
-            startActivity(Intent(this, BiometricActivity::class.java))
-            finish()
-        } else {
-            binding.tilUsername.error = null
-            binding.tilPassword.error = getString(com.smartdiary.R.string.error_invalid_credentials)
-            FeedbackHelper.showSnackbar(
-                binding.root,
-                getString(com.smartdiary.R.string.error_invalid_credentials)
-            )
+    private fun attemptLogin() {
+        val email = binding.etEmail.text.toString().trim()
+        val password = binding.etPassword.text.toString().trim()
+
+        if (email.isEmpty()) {
+            binding.tilEmail.error = "Informe o e-mail"
+            return
         }
+        if (password.isEmpty()) {
+            binding.tilPassword.error = "Informe a senha"
+            return
+        }
+
+        binding.tilEmail.error = null
+        binding.tilPassword.error = null
+        binding.btnLogin.isEnabled = false
+        binding.progressLogin.visibility = android.view.View.VISIBLE
+
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnSuccessListener {
+                FeedbackHelper.vibrate(this)
+                startActivity(Intent(this, BiometricActivity::class.java))
+                finish()
+            }
+            .addOnFailureListener { e ->
+                binding.btnLogin.isEnabled = true
+                binding.progressLogin.visibility = android.view.View.GONE
+                FeedbackHelper.showSnackbar(binding.root, "Erro: ${e.message}")
+            }
     }
 }

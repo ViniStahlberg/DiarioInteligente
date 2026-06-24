@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
     android:layout_marginVertical="4dp"
-    app:cardElevation="2dp"
-    app:cardCornerRadius="12dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -15,42 +15,83 @@
         android:padding="12dp">
 
         <TextView
+            android:id="@+id/tvItemMood"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:textSize="26sp"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <TextView
             android:id="@+id/tvItemTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:ellipsize="end"
             android:maxLines="1"
+            android:layout_marginStart="8dp"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvItemMood"
+            app:layout_constraintEnd_toStartOf="@id/tvItemHasPhoto" />
+
+        <TextView
+            android:id="@+id/tvItemHasPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📷"
+            android:textSize="13sp"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvItemHasLocation" />
+
+        <TextView
+            android:id="@+id/tvItemHasLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📍"
+            android:textSize="13sp"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tvItemDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="2dp"
+            app:layout_constraintTop_toBottomOf="@id/tvItemTitle"
+            app:layout_constraintStart_toEndOf="@id/tvItemMood"
             app:layout_constraintEnd_toEndOf="parent" />
 
         <TextView
             android:id="@+id/tvItemDate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:textColor="?attr/colorOutline"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@id/tvItemTitle"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvItemDescription"
+            app:layout_constraintStart_toEndOf="@id/tvItemMood"
             app:layout_constraintEnd_toStartOf="@id/tvItemLight" />
 
         <TextView
             android:id="@+id/tvItemLight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:textColor="?attr/colorSecondary"
             android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@id/tvItemTitle"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/tvItemDescription"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>

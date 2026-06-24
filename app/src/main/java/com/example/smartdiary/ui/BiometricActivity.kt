@@ -2,7 +2,6 @@ package com.smartdiary.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.smartdiary.auth.BiometricHelper
 import com.smartdiary.databinding.ActivityBiometricBinding
@@ -18,48 +17,36 @@ class BiometricActivity : AppCompatActivity() {
         binding = ActivityBiometricBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupBiometric()
-
-        binding.btnAuthBiometric.setOnClickListener {
-            biometricHelper.authenticate()
-        }
-
-        // Se biometria não disponível, vai direto
         if (!BiometricHelper.isAvailable(this)) {
-            binding.tvBiometricStatus.text = "Biometria não disponível neste dispositivo"
-            binding.btnAuthBiometric.text = "Continuar"
-            binding.btnAuthBiometric.setOnClickListener {
-                goToHome()
-            }
+            binding.tvBiometricStatus.text = "Biometria não disponível.\nAcesso liberado."
+            binding.btnAuth.text = "Continuar"
+            binding.btnAuth.setOnClickListener { goHome() }
+            return
         }
-    }
 
-    private fun setupBiometric() {
         biometricHelper = BiometricHelper(
             activity = this,
             onSuccess = {
-                binding.tvBiometricStatus.text = "✓ Autenticado com sucesso!"
+                binding.tvBiometricStatus.text = "✓ Identidade confirmada!"
                 FeedbackHelper.vibrate(this)
                 FeedbackHelper.playSuccessSound(this)
-                goToHome()
+                goHome()
             },
-            onError = { error ->
-                binding.tvBiometricStatus.text = "Erro: $error"
-                FeedbackHelper.showSnackbar(binding.root, "Erro: $error")
+            onError = { msg ->
+                binding.tvBiometricStatus.text = msg
+                FeedbackHelper.showSnackbar(binding.root, msg)
             },
             onFailed = {
-                binding.tvBiometricStatus.text = "Biometria não reconhecida. Tente novamente."
-                FeedbackHelper.showToast(this, "Biometria não reconhecida")
+                binding.tvBiometricStatus.text = "Biometria não reconhecida. Tente de novo."
+                FeedbackHelper.showToast(this, "Tente novamente")
             }
         )
 
-        // Inicia autenticação automaticamente
-        if (BiometricHelper.isAvailable(this)) {
-            biometricHelper.authenticate()
-        }
+        binding.btnAuth.setOnClickListener { biometricHelper.authenticate() }
+        biometricHelper.authenticate()
     }
 
-    private fun goToHome() {
+    private fun goHome() {
         startActivity(Intent(this, HomeActivity::class.java))
         finish()
     }

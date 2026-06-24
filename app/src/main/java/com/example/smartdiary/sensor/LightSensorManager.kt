@@ -13,30 +13,21 @@ class LightSensorManager(
 
     private val sensorManager =
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
     private val lightSensor: Sensor? =
         sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
 
-    private var lastValue: Float = 0f
+    var lastValue: Float = 0f
+        private set
 
-    val isAvailable: Boolean
-        get() = lightSensor != null
+    val isAvailable: Boolean get() = lightSensor != null
 
     fun start() {
         lightSensor?.let {
-            sensorManager.registerListener(
-                this,
-                it,
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
     }
 
-    fun stop() {
-        sensorManager.unregisterListener(this)
-    }
-
-    fun getLastValue(): Float = lastValue
+    fun stop() = sensorManager.unregisterListener(this)
 
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type == Sensor.TYPE_LIGHT) {
@@ -45,7 +36,5 @@ class LightSensorManager(
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-        // não utilizado
-    }
+    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
 }

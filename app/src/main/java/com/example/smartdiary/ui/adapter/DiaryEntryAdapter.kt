@@ -6,15 +6,15 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.smartdiary.databinding.ItemDiaryEntryBinding
-import com.smartdiary.model.DiaryEntryEntity
+import com.smartdiary.model.DiaryEntry
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class DiaryEntryAdapter(
-    private val onItemClick: (DiaryEntryEntity) -> Unit,
-    private val onItemLongClick: (DiaryEntryEntity) -> Unit
-) : ListAdapter<DiaryEntryEntity, DiaryEntryAdapter.EntryViewHolder>(DiffCallback()) {
+    private val onItemClick: (DiaryEntry) -> Unit,
+    private val onItemLongClick: (DiaryEntry) -> Unit
+) : ListAdapter<DiaryEntry, DiaryEntryAdapter.EntryViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EntryViewHolder {
         val binding = ItemDiaryEntryBinding.inflate(
@@ -23,37 +23,36 @@ class DiaryEntryAdapter(
         return EntryViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: EntryViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: EntryViewHolder, position: Int) =
         holder.bind(getItem(position))
-    }
 
     inner class EntryViewHolder(
         private val binding: ItemDiaryEntryBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(entry: DiaryEntryEntity) {
+        fun bind(entry: DiaryEntry) {
+            binding.tvItemMood.text = entry.mood
             binding.tvItemTitle.text = entry.title
+            binding.tvItemDescription.text = entry.description
             binding.tvItemDate.text = formatDate(entry.createdAt)
             binding.tvItemLight.text = "☀ %.1f lx".format(entry.lightLevel)
+            binding.tvItemHasPhoto.visibility =
+                if (entry.imageUrl.isNotEmpty()) android.view.View.VISIBLE
+                else android.view.View.GONE
+            binding.tvItemHasLocation.visibility =
+                if (entry.hasLocation()) android.view.View.VISIBLE
+                else android.view.View.GONE
 
             binding.root.setOnClickListener { onItemClick(entry) }
-            binding.root.setOnLongClickListener {
-                onItemLongClick(entry)
-                true
-            }
+            binding.root.setOnLongClickListener { onItemLongClick(entry); true }
         }
 
-        private fun formatDate(timestamp: Long): String {
-            val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-            return sdf.format(Date(timestamp))
-        }
+        private fun formatDate(ts: Long): String =
+            SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(ts))
     }
 
-    class DiffCallback : DiffUtil.ItemCallback<DiaryEntryEntity>() {
-        override fun areItemsTheSame(old: DiaryEntryEntity, new: DiaryEntryEntity) =
-            old.id == new.id
-
-        override fun areContentsTheSame(old: DiaryEntryEntity, new: DiaryEntryEntity) =
-            old == new
+    class DiffCallback : DiffUtil.ItemCallback<DiaryEntry>() {
+        override fun areItemsTheSame(old: DiaryEntry, new: DiaryEntry) = old.id == new.id
+        override fun areContentsTheSame(old: DiaryEntry, new: DiaryEntry) = old == new
     }
 }

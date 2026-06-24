@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.SmartDiary" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.SmartDiary" parent="Theme.Material3.DayNight">
         <item name="colorPrimary">#D0BCFF</item>
         <item name="colorOnPrimary">#381E72</item>
         <item name="colorPrimaryContainer">#4F378B</item>
@@ -8,8 +8,6 @@
         <item name="colorSurface">#1C1B1F</item>
         <item name="colorError">#F2B8B5</item>
         <item name="android:statusBarColor">?attr/colorSurface</item>
-        <item name="windowActionBar">true</item>
-        <item name="windowNoTitle">false</item>
     </style>
 
     <style name="Theme.SmartDiary.Splash" parent="Theme.Material3.DayNight.NoActionBar">

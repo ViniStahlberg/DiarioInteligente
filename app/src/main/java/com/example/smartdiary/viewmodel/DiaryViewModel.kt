@@ -1,65 +1,109 @@
 package com.smartdiary.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.net.Uri
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartdiary.database.DiaryDatabase
-import com.smartdiary.model.DiaryEntryEntity
+import com.smartdiary.model.DiaryEntry
 import com.smartdiary.repository.DiaryRepository
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class DiaryViewModel(application: Application) : AndroidViewModel(application) {
+class DiaryViewModel : ViewModel() {
 
-    private val repository: DiaryRepository
-    val allEntries: LiveData<List<DiaryEntryEntity>>
-    val entryCount: LiveData<Int>
+    private val repository = DiaryRepository()
+
+    private val _entries = MutableLiveData<List<DiaryEntry>>()
+    val entries: LiveData<List<DiaryEntry>> = _entries
+
+    private val _entryCount = MutableLiveData<Int>()
+    val entryCount: LiveData<Int> = _entryCount
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    private val _saveResult = MutableLiveData<Boolean?>()
+    val saveResult: LiveData<Boolean?> = _saveResult
 
     init {
-        val dao = DiaryDatabase.getInstance(application).diaryDao()
-        repository = DiaryRepository(dao)
-        allEntries = repository.allEntries
-        entryCount = repository.entryCount
+        loadEntries()
+        loadEntryCount()
     }
 
-    fun insert(entry: DiaryEntryEntity) {
+    private fun loadEntries() {
         viewModelScope.launch {
-            repository.insert(entry)
+            repository.getEntriesFlow().collectLatest { list ->
+                _entries.value = list
+            }
         }
     }
 
-    fun insertAndGetId(
-        entry: DiaryEntryEntity,
-        onResult: (Long) -> Unit
-    ) {
+    private fun loadEntryCount() {
         viewModelScope.launch {
-            val id = repository.insert(entry)
-            onResult(id)
+            repository.getEntryCountFlow().collectLatest { count ->
+                _entryCount.value = count
+            }
         }
     }
 
-    fun update(entry: DiaryEntryEntity) {
+    fun saveEntryWithPhoto(entry: DiaryEntry, photoUri: Uri?) {
         viewModelScope.launch {
-            repository.update(entry)
+            _isLoading.value = true
+            var finalEntry = entry
+            if (photoUri != null) {
+                val uploadResult = repository.uploadPhoto(photoUri)
+                if (uploadResult.isSuccess) {
+                    finalEntry = entry.copy(imageUrl = uploadResult.getOrDefault(""))
+                }
+            }
+            val result = repository.saveEntry(finalEntry)
+            _isLoading.value = false
+            _saveResult.value = result.isSuccess
+            if (!result.isSuccess) {
+                _error.value = result.exceptionOrNull()?.message
+            }
         }
     }
 
-    fun delete(entry: DiaryEntryEntity) {
+    fun deleteEntry(id: String) {
         viewModelScope.launch {
-            repository.delete(entry)
+            val result = repository.deleteEntry(id)
+            if (!result.isSuccess) _error.value = result.exceptionOrNull()?.message
         }
     }
 
-    fun getEntryById(id: Long, onResult: (DiaryEntryEntity?) -> Unit) {
+    fun deleteAllEntries() {
         viewModelScope.launch {
-            val entry = repository.getEntryById(id)
-            onResult(entry)
+            _isLoading.value = true
+            repository.deleteAllEntries()
+            _isLoading.value = false
         }
     }
 
-    fun deleteAll() {
+    fun getEntryById(id: String, onResult: (DiaryEntry?) -> Unit) {
         viewModelScope.launch {
-            repository.deleteAll()
+            onResult(repository.getEntryById(id))
         }
+    }
+
+    fun clearSaveResult() { _saveResult.value = null }
+    fun clearError() { _error.value = null }
+
+    // Humor da semana para o gráfico
+    fun getMoodCountsForChart(): Map<String, Int> {
+        val list = _entries.value ?: return emptyMap()
+        val sevenDaysAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
+        return list
+            .filter { it.createdAt >= sevenDaysAgo }
+            .groupBy { it.mood }
+            .mapValues { it.value.size }
+    }
+
+    fun getEntriesWithLocation(): List<DiaryEntry> {
+        return _entries.value?.filter { it.hasLocation() } ?: emptyList()
     }
 }

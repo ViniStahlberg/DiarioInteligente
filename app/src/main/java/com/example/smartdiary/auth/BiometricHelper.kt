@@ -11,43 +11,35 @@ class BiometricHelper(
     private val onError: (String) -> Unit,
     private val onFailed: () -> Unit
 ) {
-
     private val executor = ContextCompat.getMainExecutor(activity)
 
     private val callback = object : BiometricPrompt.AuthenticationCallback() {
         override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-            super.onAuthenticationSucceeded(result)
             onSuccess()
         }
-
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-            super.onAuthenticationError(errorCode, errString)
             onError(errString.toString())
         }
-
         override fun onAuthenticationFailed() {
-            super.onAuthenticationFailed()
             onFailed()
         }
     }
 
-    private val biometricPrompt = BiometricPrompt(activity, executor, callback)
+    private val prompt = BiometricPrompt(activity, executor, callback)
 
     private val promptInfo = BiometricPrompt.PromptInfo.Builder()
         .setTitle("Autenticação Biométrica")
-        .setSubtitle("Toque no sensor para acessar seus registros")
-        .setDescription("Use sua impressão digital ou face para entrar no SmartDiary")
+        .setSubtitle("Use sua digital ou reconhecimento facial")
+        .setDescription("Confirme sua identidade para acessar o SmartDiary")
         .setNegativeButtonText("Cancelar")
         .build()
 
-    fun authenticate() {
-        biometricPrompt.authenticate(promptInfo)
-    }
+    fun authenticate() = prompt.authenticate(promptInfo)
 
     companion object {
         fun isAvailable(activity: FragmentActivity): Boolean {
-            val manager = BiometricManager.from(activity)
-            return manager.canAuthenticate(
+            val mgr = BiometricManager.from(activity)
+            return mgr.canAuthenticate(
                 BiometricManager.Authenticators.BIOMETRIC_STRONG or
                         BiometricManager.Authenticators.BIOMETRIC_WEAK
             ) == BiometricManager.BIOMETRIC_SUCCESS

@@ -1,29 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SmartDiary</string>
-
-    <!-- Login -->
-    <string name="login_title">Bem-vindo ao SmartDiary</string>
-    <string name="hint_username">Usuário</string>
-    <string name="hint_password">Senha</string>
-    <string name="btn_login">Entrar</string>
-    <string name="error_invalid_credentials">Usuário ou senha incorretos.</string>
-
-    <!-- Biometria -->
-    <string name="biometric_auth_title">Autenticação por Biometria</string>
-    <string name="biometric_auth_subtitle">Toque no sensor para acessar seus registros</string>
-    <string name="btn_auth_biometric">Usar Biometria</string>
-
-    <!-- Home -->
-    <string name="home_entries_count">Você possui %1$d registros guardados.</string>
-    <string name="btn_new_entry">➕ Novo Registro</string>
-    <string name="btn_view_history">📋 Ver Histórico</string>
-
-    <!-- Novo Registro -->
-    <string name="hint_title">Título do Momento</string>
-    <string name="hint_description">O que aconteceu? (Escreva ou grave sua voz)</string>
-    <string name="txt_light_level">☀ Luminosidade: %.2f lx</string>
-    <string name="btn_save">💾 Salvar Registro</string>
-    <string name="msg_save_success">Registro salvo com sucesso!</string>
-    <string name="msg_empty_fields">Por favor, preencha o título e a descrição.</string>
 </resources>

@@ -24,60 +24,40 @@ class HistoryActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Histórico"
+        supportActionBar?.title = "Meu Diário"
 
-        setupRecyclerView()
-        observeEntries()
-    }
-
-    private fun setupRecyclerView() {
         adapter = DiaryEntryAdapter(
             onItemClick = { entry ->
-                val intent = Intent(this, EntryDetailActivity::class.java).apply {
-                    putExtra(EntryDetailActivity.EXTRA_ENTRY_ID, entry.id)
-                }
-                startActivity(intent)
+                startActivity(
+                    Intent(this, EntryDetailActivity::class.java).apply {
+                        putExtra(EntryDetailActivity.EXTRA_ENTRY_ID, entry.id)
+                    }
+                )
             },
             onItemLongClick = { entry ->
-                showDeleteDialog(entry.id, entry.title)
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("Excluir registro")
+                    .setMessage("Deseja excluir \"${entry.title}\"?\nEsta ação não pode ser desfeita.")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Excluir") { _, _ ->
+                        viewModel.deleteEntry(entry.id)
+                        FeedbackHelper.showToast(this, "Registro excluído")
+                    }
+                    .show()
             }
         )
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
-    }
 
-    private fun observeEntries() {
-        viewModel.allEntries.observe(this) { entries ->
-            adapter.submitList(entries)
-            if (entries.isEmpty()) {
-                binding.recyclerView.visibility = View.GONE
-                binding.tvEmpty.visibility = View.VISIBLE
-            } else {
-                binding.recyclerView.visibility = View.VISIBLE
-                binding.tvEmpty.visibility = View.GONE
-            }
+        viewModel.entries.observe(this) { list ->
+            adapter.submitList(list)
+            binding.recyclerView.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE
+            binding.layoutEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
     }
 
-    private fun showDeleteDialog(id: Long, title: String) {
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Excluir registro")
-            .setMessage("Deseja excluir \"$title\"?")
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Excluir") { _, _ ->
-                viewModel.getEntryById(id) { entry ->
-                    entry?.let {
-                        viewModel.delete(it)
-                        FeedbackHelper.showToast(this, "Registro excluído")
-                    }
-                }
-            }
-            .show()
-    }
-
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressedDispatcher.onBackPressed()
-        return true
+        onBackPressedDispatcher.onBackPressed(); return true
     }
 }

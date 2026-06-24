@@ -21,67 +21,49 @@ class CameraHelper(
     private val onPhotoSaved: (Uri) -> Unit,
     private val onError: (String) -> Unit
 ) {
-
     private var imageCapture: ImageCapture? = null
 
     fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(previewView.surfaceProvider)
-            }
-
+        val future = ProcessCameraProvider.getInstance(context)
+        future.addListener({
+            val provider = future.get()
+            val preview = Preview.Builder().build()
+                .also { it.setSurfaceProvider(previewView.surfaceProvider) }
             imageCapture = ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                 .build()
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
             try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
+                provider.unbindAll()
+                provider.bindToLifecycle(
                     lifecycleOwner,
-                    cameraSelector,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
                     imageCapture
                 )
             } catch (e: Exception) {
-                onError("Erro ao iniciar câmera: ${e.message}")
+                onError("Falha ao iniciar câmera: ${e.message}")
             }
         }, ContextCompat.getMainExecutor(context))
     }
 
     fun takePhoto() {
-        val capture = imageCapture ?: run {
-            onError("Câmera não inicializada")
-            return
-        }
-
-        val photoFile = createPhotoFile()
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
+        val capture = imageCapture ?: run { onError("Câmera não inicializada"); return }
+        val file = createFile()
         capture.takePicture(
-            outputOptions,
+            ImageCapture.OutputFileOptions.Builder(file).build(),
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val uri = Uri.fromFile(photoFile)
-                    onPhotoSaved(uri)
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    onError("Falha ao salvar foto: ${exception.message}")
-                }
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) =
+                    onPhotoSaved(Uri.fromFile(file))
+                override fun onError(e: ImageCaptureException) =
+                    onError("Erro ao salvar foto: ${e.message}")
             }
         )
     }
 
-    private fun createPhotoFile(): File {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+    private fun createFile(): File {
+        val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
             .format(System.currentTimeMillis())
-        val storageDir = context.filesDir
-        return File(storageDir, "SMARTDIARY_${timeStamp}.jpg")
+        return File(context.cacheDir, "SMART_${stamp}.jpg")
     }
 }

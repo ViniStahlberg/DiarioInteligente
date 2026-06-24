@@ -20,7 +20,17 @@ class CameraActivity : AppCompatActivity() {
 
         supportActionBar?.hide()
 
-        setupCamera()
+        cameraHelper = CameraHelper(
+            context = this,
+            lifecycleOwner = this,
+            previewView = binding.previewView,
+            onPhotoSaved = { uri -> returnPhoto(uri) },
+            onError = { msg ->
+                binding.btnCapture.isEnabled = true
+                FeedbackHelper.showToast(this, msg)
+            }
+        )
+        cameraHelper.startCamera()
 
         binding.btnCapture.setOnClickListener {
             binding.btnCapture.isEnabled = false
@@ -33,31 +43,12 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupCamera() {
-        cameraHelper = CameraHelper(
-            context = this,
-            lifecycleOwner = this,
-            previewView = binding.previewView,
-            onPhotoSaved = { uri ->
-                onPhotoSaved(uri)
-            },
-            onError = { error ->
-                binding.btnCapture.isEnabled = true
-                FeedbackHelper.showToast(this, error)
-            }
-        )
-        cameraHelper.startCamera()
-    }
-
-    private fun onPhotoSaved(uri: Uri) {
+    private fun returnPhoto(uri: Uri) {
         FeedbackHelper.vibrate(this)
-        FeedbackHelper.playSuccessSound(this)
-        FeedbackHelper.showToast(this, "Foto salva!")
-
-        val resultIntent = Intent().apply {
-            putExtra(NewEntryActivity.EXTRA_IMAGE_PATH, uri.path)
+        val result = Intent().apply {
+            putExtra(NewEntryActivity.EXTRA_IMAGE_URI, uri.toString())
         }
-        setResult(RESULT_OK, resultIntent)
+        setResult(RESULT_OK, result)
         finish()
     }
 }
