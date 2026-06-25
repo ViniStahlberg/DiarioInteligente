@@ -103,7 +103,9 @@ class DiaryViewModel : ViewModel() {
             .mapValues { it.value.size }
     }
 
-    fun getEntriesWithLocation(): List<DiaryEntry> {
-        return _entries.value?.filter { it.hasLocation() } ?: emptyList()
+    // ERRO CORRIGIDO: Agora a função filtra de forma inteligente as notas criadas
+    // enquanto o usuário estava se movimentando (Passos > 0) para alimentar a nova interface!
+    fun getActiveMovementEntries(): List<DiaryEntry> {
+        return _entries.value?.filter { it.stepsAtTime > 0 } ?: emptyList()
     }
 }

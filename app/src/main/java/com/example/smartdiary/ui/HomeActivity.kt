@@ -52,7 +52,8 @@ class HomeActivity : AppCompatActivity() {
             startActivity(Intent(this, HistoryActivity::class.java))
         }
         binding.btnMap.setOnClickListener {
-            startActivity(Intent(this, MapActivity::class.java))
+            val intent = Intent(this, ContextTimelineActivity::class.java)
+            startActivity(intent)
         }
         binding.btnMoodChart.setOnClickListener {
             startActivity(Intent(this, MoodChartActivity::class.java))

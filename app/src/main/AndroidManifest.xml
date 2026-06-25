@@ -50,7 +50,7 @@
         <activity android:name=".ui.HistoryActivity" android:exported="false" />
         <activity android:name=".ui.EntryDetailActivity" android:exported="false" />
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
-        <activity android:name=".ui.MapActivity" android:exported="false" />
+        <activity android:name=".ui.ContextTimelineActivity" android:exported="false" />
         <activity android:name=".ui.MoodChartActivity" android:exported="false" />
 
     </application>

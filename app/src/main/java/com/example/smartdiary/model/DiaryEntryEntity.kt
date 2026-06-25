@@ -6,13 +6,12 @@ data class DiaryEntry(
     val title: String = "",
     val description: String = "",
     val imageUrl: String = "",
-    val lightLevel: Float = 0f,
+    val lightLevel: Float = 0f,         // Lux detectado pelo sensor de luz
+    val stepsAtTime: Int = 0,           // Passos/movimento detectados no momento
     val mood: String = "😐",
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0,
     val createdAt: Long = System.currentTimeMillis()
 ) {
-    constructor() : this("", "", "", "", "", 0f, "😐", 0.0, 0.0, 0L)
+    constructor() : this("", "", "", "", "", 0f, 0, "😐", 0L)
 
     fun toMap(): Map<String, Any> = mapOf(
         "id"          to id,
@@ -21,9 +20,8 @@ data class DiaryEntry(
         "description" to description,
         "imageUrl"    to imageUrl,
         "lightLevel"  to lightLevel,
+        "stepsAtTime" to stepsAtTime,
         "mood"        to mood,
-        "latitude"    to latitude,
-        "longitude"   to longitude,
         "createdAt"   to createdAt
     )
 
@@ -36,5 +34,14 @@ data class DiaryEntry(
         else -> "Neutro"
     }
 
-    fun hasLocation(): Boolean = latitude != 0.0 && longitude != 0.0
+    // Retorna uma descrição textual charmosa do ambiente para o Pitch
+    fun getAmbientContextDescription(): String {
+        val lightDesc = when {
+            lightLevel < 10f -> "Ambiente Escuro (Noite/Quarto)"
+            lightLevel < 100f -> "Luz Suave (Interior)"
+            else -> "Ambiente Iluminado (Dia/Exterior)"
+        }
+        val motionDesc = if (stepsAtTime > 0) "Em Movimento 🚶" else "Relaxado/Estático 🧘"
+        return "$lightDesc • $motionDesc"
+    }
 }

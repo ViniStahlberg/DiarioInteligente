@@ -1,6 +1,7 @@
 package com.smartdiary.ui.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -31,17 +32,25 @@ class DiaryEntryAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(entry: DiaryEntry) {
-            binding.tvItemMood.text = entry.mood
+            binding.tvItemMood.text = if (entry.mood.isNotEmpty()) entry.mood else "📝"
             binding.tvItemTitle.text = entry.title
             binding.tvItemDescription.text = entry.description
             binding.tvItemDate.text = formatDate(entry.createdAt)
-            binding.tvItemLight.text = "☀ %.1f lx".format(entry.lightLevel)
+
+            // Exibe a luminosidade e uma tag curta baseada nos passos
+            val motionTag = if (entry.stepsAtTime > 0) "Ativo 🚶" else "Relaxado 🧘"
+            binding.tvItemLight.text = "☀ %.1f lx • %s".format(entry.lightLevel, motionTag)
+
             binding.tvItemHasPhoto.visibility =
-                if (entry.imageUrl.isNotEmpty()) android.view.View.VISIBLE
-                else android.view.View.GONE
-            binding.tvItemHasLocation.visibility =
-                if (entry.hasLocation()) android.view.View.VISIBLE
-                else android.view.View.GONE
+                if (entry.imageUrl.isNotEmpty()) View.VISIBLE
+                else View.GONE
+
+            // Tratamento seguro para o novo layout de movimentos/passos do Pitch
+            if (binding.root.findViewById<View>(com.smartdiary.R.id.tvItemHasMotion) != null) {
+                binding.tvItemHasMotion.visibility =
+                    if (entry.stepsAtTime > 0) View.VISIBLE
+                    else View.GONE
+            }
 
             binding.root.setOnClickListener { onItemClick(entry) }
             binding.root.setOnLongClickListener { onItemLongClick(entry); true }

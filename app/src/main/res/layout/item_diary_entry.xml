@@ -45,15 +45,16 @@
             android:textSize="13sp"
             android:visibility="gone"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tvItemHasLocation" />
+            app:layout_constraintEnd_toStartOf="@id/tvItemHasMotion" />
 
+        <!-- Trocado de Localização para Movimento/Passos -->
         <TextView
-            android:id="@+id/tvItemHasLocation"
+            android:id="@+id/tvItemHasMotion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📍"
+            android:text="👣"
             android:textSize="13sp"
-            android:visibility="gone"
+            android:visibility="visible"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -83,6 +84,7 @@
             app:layout_constraintStart_toEndOf="@id/tvItemMood"
             app:layout_constraintEnd_toStartOf="@id/tvItemLight" />
 
+        <!-- Espaço para exibir "X lux • Calmo" ou "X lux • Ativo" -->
         <TextView
             android:id="@+id/tvItemLight"
             android:layout_width="wrap_content"

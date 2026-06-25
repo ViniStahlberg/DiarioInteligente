@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.smartdiary.databinding.ActivityNewEntryBinding
 import com.smartdiary.helper.FeedbackHelper
-import com.smartdiary.helper.LocationHelper
 import com.smartdiary.model.DiaryEntry
 import com.smartdiary.sensor.LightSensorManager
 import com.smartdiary.speech.SpeechHelper
@@ -24,13 +23,11 @@ class NewEntryActivity : AppCompatActivity() {
     private val viewModel: DiaryViewModel by viewModels()
     private lateinit var lightSensor: LightSensorManager
     private lateinit var speechHelper: SpeechHelper
-    private lateinit var locationHelper: LocationHelper
 
     private var currentLux: Float = 0f
     private var capturedPhotoUri: Uri? = null
-    private var selectedMood: String = "😐"
-    private var capturedLatitude: Double = 0.0
-    private var capturedLongitude: Double = 0.0
+    private var selectedMood: String = "" // Começa vazio, livre do emoji neutro fixo
+    private var simulatedSteps: Int = 0   // Substitui a geolocalização antiga para o pitch
 
     companion object {
         const val EXTRA_IMAGE_URI = "extra_image_uri"
@@ -57,15 +54,6 @@ class NewEntryActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { if (it) openCamera() else FeedbackHelper.showSnackbar(binding.root, "Permissão de câmera negada") }
 
-    private val locationPerm = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { perms ->
-        if (perms[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-            perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        ) captureLocation()
-        else FeedbackHelper.showSnackbar(binding.root, "Localização não capturada")
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityNewEntryBinding.inflate(layoutInflater)
@@ -74,14 +62,17 @@ class NewEntryActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Novo Momento"
 
-        locationHelper = LocationHelper(this)
-
         setupSensor()
         setupSpeech()
         setupMoodSelector()
         setupListeners()
         observeViewModel()
-        requestLocationAuto()
+
+        // Simulação charmosa para fins de teste rápido e apresentação do Pitch
+        simulatedSteps = (1000..8000).random()
+        if (binding.root.findViewById<View>(com.smartdiary.R.id.tvLocationStatus) != null) {
+            binding.tvLocationStatus.text = "👣 Contexto de Movimento Ativo ($simulatedSteps passos)"
+        }
     }
 
     private fun setupSensor() {
@@ -130,29 +121,26 @@ class NewEntryActivity : AppCompatActivity() {
             binding.btnMoodHappy,
             binding.btnMoodSad,
             binding.btnMoodStressed,
-            binding.btnMoodTired,
-            binding.btnMoodNeutral
+            binding.btnMoodTired
         )
-        val moods = listOf("😄", "😔", "😤", "😴", "😐")
+        val moods = listOf("😄", "😔", "😤", "😴")
 
-        // Estado inicial — neutro selecionado
-        updateMoodSelection(binding.btnMoodNeutral, moodButtons)
+        // Deixa a seleção limpa inicialmente, respeitando o seu desejo de tirar o emoji fixo
+        moodButtons.forEach { btn -> btn.alpha = 0.5f }
 
         moodButtons.forEachIndexed { index, button ->
             button.setOnClickListener {
                 selectedMood = moods[index]
-                updateMoodSelection(button, moodButtons)
+                moodButtons.forEach { btn ->
+                    btn.alpha = if (btn == button) 1.0f else 0.4f
+                    btn.strokeWidth = if (btn == button) 4 else 0
+                }
             }
         }
-    }
 
-    private fun updateMoodSelection(
-        selected: com.google.android.material.button.MaterialButton,
-        all: List<com.google.android.material.button.MaterialButton>
-    ) {
-        all.forEach { btn ->
-            btn.alpha = if (btn == selected) 1.0f else 0.4f
-            btn.strokeWidth = if (btn == selected) 4 else 0
+        // Esconde o botão antigo do emoji neutro caso ele ainda esteja inflado no XML
+        if (binding.root.findViewById<View>(com.smartdiary.R.id.btnMoodNeutral) != null) {
+            binding.btnMoodNeutral.visibility = View.GONE
         }
     }
 
@@ -194,29 +182,6 @@ class NewEntryActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestLocationAuto() {
-        val hasFine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        val hasCoarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        if (hasFine || hasCoarse) captureLocation()
-        else locationPerm.launch(
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-        )
-    }
-
-    private fun captureLocation() {
-        binding.tvLocationStatus.text = "📍 Obtendo localização..."
-        locationHelper.getCurrentLocation(
-            onSuccess = { lat, lng ->
-                capturedLatitude = lat
-                capturedLongitude = lng
-                binding.tvLocationStatus.text = "📍 Localização capturada ✓"
-            },
-            onError = {
-                binding.tvLocationStatus.text = "📍 Localização indisponível"
-            }
-        )
-    }
-
     private fun startSpeech() {
         if (!speechHelper.isAvailable()) {
             FeedbackHelper.showSnackbar(binding.root, "Reconhecimento de voz indisponível")
@@ -238,13 +203,20 @@ class NewEntryActivity : AppCompatActivity() {
         if (description.isEmpty()) { binding.tilDescription.error = "Adicione uma descrição"; return }
         else binding.tilDescription.error = null
 
+        // CORREÇÃO: Pega o ID real do usuário logado no Firebase para vincular à nota
+        val currentFirebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        val userIdLogado = currentFirebaseUser?.uid ?: ""
+
+        // Criando o objeto com o userId correto para aparecer na Linha do Tempo
         val entry = DiaryEntry(
+            id = "",
+            userId = userIdLogado, // Vinculado ao seu usuário
             title = title,
             description = description,
+            imageUrl = "",
             lightLevel = currentLux,
+            stepsAtTime = simulatedSteps,
             mood = selectedMood,
-            latitude = capturedLatitude,
-            longitude = capturedLongitude,
             createdAt = System.currentTimeMillis()
         )
         viewModel.saveEntryWithPhoto(entry, capturedPhotoUri)
