@@ -3,6 +3,7 @@ package com.smartdiary.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
@@ -10,6 +11,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.smartdiary.databinding.ActivityContextTimelineBinding
 import com.smartdiary.model.DiaryEntry
 import com.smartdiary.ui.adapter.DiaryEntryAdapter
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class ContextTimelineActivity : AppCompatActivity() {
 
@@ -26,6 +29,11 @@ class ContextTimelineActivity : AppCompatActivity() {
         setupToolbar()
         setupRecyclerView()
         loadTimelineData()
+
+        // Configuração do clique do botão para gerar e injetar o registro contextual randômico
+        binding.fabAddEntry.setOnClickListener {
+            criarRegistroRapidoNaLinhaDoTempo()
+        }
     }
 
     private fun setupToolbar() {
@@ -72,19 +80,17 @@ class ContextTimelineActivity : AppCompatActivity() {
                         val mood = doc.getString("mood") ?: "📝"
                         val createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
 
-                        // SUPORTE DUPLO DE NOMENCLATURA:
-                        // Tenta ler 'lightLevel' (camelCase). Se vier nulo, tenta 'lightlevel' ou 'light_level'
-                        val lightLevel = (doc.getDouble("lightLevel")
-                            ?: doc.getDouble("lightlevel")
-                            ?: doc.getDouble("light_level")
-                            ?: 0.0).toFloat()
+                        // Resgata o campo numérico genérico com segurança para evitar ClassCastException
+                        val lightLevelRaw = doc.get("lightLevel")
+                            ?: doc.get("lightlevel")
+                            ?: doc.get("light_level")
+                        val lightLevel = (lightLevelRaw as? Number)?.toFloat() ?: 0.0f
 
-                        // Tenta ler 'stepsAtTime'. Se vier nulo, tenta 'steps' ou as outras variações comuns
-                        val stepsAtTime = (doc.getLong("stepsAtTime")
-                            ?: doc.getLong("stepsattime")
-                            ?: doc.getLong("steps_at_time")
-                            ?: doc.getLong("steps")
-                            ?: 0L).toInt()
+                        val stepsRaw = doc.get("stepsAtTime")
+                            ?: doc.get("stepsattime")
+                            ?: doc.get("steps_at_time")
+                            ?: doc.get("steps")
+                        val stepsAtTime = (stepsRaw as? Number)?.toInt() ?: 0
 
                         val entry = DiaryEntry(
                             id = id,
@@ -99,7 +105,7 @@ class ContextTimelineActivity : AppCompatActivity() {
                         )
                         entriesList.add(entry)
                     } catch (e: Exception) {
-                        android.util.Log.e("SMART_DIARY", "Erro mapeamento: ${e.message}")
+                        android.util.Log.e("SMART_DIARY", "Erro mapeamento: ${e.message}", e)
                     }
                 }
 
@@ -120,6 +126,70 @@ class ContextTimelineActivity : AppCompatActivity() {
                 binding.tvEmptyTimeline.visibility = View.VISIBLE
                 binding.tvEmptyTimeline.text = "Nenhum contexto registrado ainda."
                 binding.rvTimelineContext.visibility = View.GONE
+            }
+    }
+
+    // Método avançado que gera dados contextuais simulados e inteligentes salvando direto no Firestore
+    private fun criarRegistroRapidoNaLinhaDoTempo() {
+        val currentFirebaseUser = auth.currentUser
+        val userIdLogado = currentFirebaseUser?.uid ?: return
+
+        binding.progressBar.visibility = View.VISIBLE
+
+        // 1. Coleta e gera dados base ambientais de teste
+        val horaAtual = SimpleDateFormat("HH:mm", Locale.getDefault()).format(java.util.Date())
+        val passosSimulados = (400..9900).random()
+        val luxSimulado = (5..800).random().toFloat()
+
+        val humores = listOf("😄", "😊", "📝", "⚡", "😴", "😔")
+        val humorAleatorio = humores.random()
+
+        // 2. Define títulos alternativos baseado no humor sorteado
+        val tituloDinamico = when (humorAleatorio) {
+            "😄", "😊" -> "Momento de Energia ($horaAtual)"
+            "⚡" -> "Pico de Estresse ($horaAtual)"
+            "😴" -> "Momento de Descanso ($horaAtual)"
+            "😔" -> "Momento de Reflexão ($horaAtual)"
+            else -> "Nota Contextual ($horaAtual)"
+        }
+
+        // 3. Monta mensagens descritivas inteligentes cruzando humor com sensores
+        val descricaoDinamica = when {
+            humorAleatorio == "😴" && luxSimulado < 50 ->
+                "Preparando para dormir em um ambiente devidamente escuro."
+            humorAleatorio == "⚡" && passosSimulados < 1500 ->
+                "Sentindo agitação acumulada após passar muito tempo sentado."
+            humorAleatorio == "😄" && luxSimulado > 450 ->
+                "Bom humor impulsionado por um ambiente bem iluminado e ativo."
+            passosSimulados > 7500 ->
+                "Registro feito logo após uma caminhada intensa ou atividade física."
+            luxSimulado < 20 ->
+                "Registro feito em um local com pouca luz. Monitorando fadiga visual."
+            else ->
+                "Análise de rotina: correlacionando sensores de movimento e ambiente com o bem-estar."
+        }
+
+
+        val novoRegistroRapido = hashMapOf(
+            "userId" to userIdLogado,
+            "title" to tituloDinamico,
+            "description" to descricaoDinamica,
+            "imageUrl" to "",
+            "lightLevel" to luxSimulado,
+            "stepsAtTime" to passosSimulados,
+            "mood" to humorAleatorio,
+            "createdAt" to System.currentTimeMillis()
+        )
+
+        db.collection("entries")
+            .add(novoRegistroRapido)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Novo contexto inteligente registrado! 🎉", Toast.LENGTH_SHORT).show()
+                loadTimelineData() // Recarrega automaticamente a lista da tela
+            }
+            .addOnFailureListener { e ->
+                binding.progressBar.visibility = View.GONE
+                Toast.makeText(this, "Erro ao criar: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 }
