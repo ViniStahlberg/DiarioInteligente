@@ -1,18 +1,19 @@
 package com.smartdiary.viewmodel
 
+import android.app.Application
 import android.net.Uri
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartdiary.model.DiaryEntry
 import com.smartdiary.repository.DiaryRepository
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class DiaryViewModel : ViewModel() {
+class DiaryViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = DiaryRepository()
+    private val repository = DiaryRepository(application.applicationContext)
 
     private val _entries = MutableLiveData<List<DiaryEntry>>()
     val entries: LiveData<List<DiaryEntry>> = _entries
@@ -58,6 +59,8 @@ class DiaryViewModel : ViewModel() {
                 val uploadResult = repository.uploadPhoto(photoUri)
                 if (uploadResult.isSuccess) {
                     finalEntry = entry.copy(imageUrl = uploadResult.getOrDefault(""))
+                } else {
+                    _error.value = "Erro ao processar foto: ${uploadResult.exceptionOrNull()?.message}"
                 }
             }
             val result = repository.saveEntry(finalEntry)
@@ -93,7 +96,6 @@ class DiaryViewModel : ViewModel() {
     fun clearSaveResult() { _saveResult.value = null }
     fun clearError() { _error.value = null }
 
-    // Humor da semana para o gráfico
     fun getMoodCountsForChart(): Map<String, Int> {
         val list = _entries.value ?: return emptyMap()
         val sevenDaysAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
@@ -103,8 +105,6 @@ class DiaryViewModel : ViewModel() {
             .mapValues { it.value.size }
     }
 
-    // ERRO CORRIGIDO: Agora a função filtra de forma inteligente as notas criadas
-    // enquanto o usuário estava se movimentando (Passos > 0) para alimentar a nova interface!
     fun getActiveMovementEntries(): List<DiaryEntry> {
         return _entries.value?.filter { it.stepsAtTime > 0 } ?: emptyList()
     }

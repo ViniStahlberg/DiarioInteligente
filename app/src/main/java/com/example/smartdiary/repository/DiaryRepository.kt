@@ -1,22 +1,24 @@
 package com.smartdiary.repository
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Base64
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.storage.FirebaseStorage
 import com.smartdiary.model.DiaryEntry
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
+import java.io.ByteArrayOutputStream
 
-class DiaryRepository {
+class DiaryRepository(private val context: Context) {
 
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
 
     private val currentUserId: String
         get() = auth.currentUser?.uid ?: ""
@@ -26,7 +28,6 @@ class DiaryRepository {
             .document(currentUserId)
             .collection("entries")
 
-    // Fluxo em tempo real dos registros do usuário
     fun getEntriesFlow(): Flow<List<DiaryEntry>> = callbackFlow {
         val listener = entriesCollection()
             .orderBy("createdAt", Query.Direction.DESCENDING)
@@ -94,14 +95,25 @@ class DiaryRepository {
         }
     }
 
-    // Upload de foto para Firebase Storage
+    // Converte a foto para Base64 e salva direto no Firestore (sem Firebase Storage)
     suspend fun uploadPhoto(localUri: Uri): Result<String> {
         return try {
-            val fileName = "photos/${currentUserId}/${UUID.randomUUID()}.jpg"
-            val ref = storage.reference.child(fileName)
-            ref.putFile(localUri).await()
-            val downloadUrl = ref.downloadUrl.await().toString()
-            Result.success(downloadUrl)
+            val inputStream = context.contentResolver.openInputStream(localUri)
+                ?: return Result.failure(Exception("Não foi possível abrir a imagem"))
+
+            // Reduz o tamanho da imagem antes de converter (evita documento gigante no Firestore)
+            val original = BitmapFactory.decodeStream(inputStream)
+            inputStream.close()
+
+            val scaled = Bitmap.createScaledBitmap(original, 600, 600, true)
+
+            val outputStream = ByteArrayOutputStream()
+            scaled.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+            val bytes = outputStream.toByteArray()
+
+            val base64String = "data:image/jpeg;base64," + Base64.encodeToString(bytes, Base64.NO_WRAP)
+
+            Result.success(base64String)
         } catch (e: Exception) {
             Result.failure(e)
         }

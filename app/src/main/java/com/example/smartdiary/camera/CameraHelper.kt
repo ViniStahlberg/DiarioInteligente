@@ -9,6 +9,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.LifecycleOwner
 import java.io.File
 import java.text.SimpleDateFormat
@@ -53,8 +54,15 @@ class CameraHelper(
             ImageCapture.OutputFileOptions.Builder(file).build(),
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) =
-                    onPhotoSaved(Uri.fromFile(file))
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    // CORREÇÃO: usa FileProvider em vez de Uri.fromFile
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.provider",
+                        file
+                    )
+                    onPhotoSaved(uri)
+                }
                 override fun onError(e: ImageCaptureException) =
                     onError("Erro ao salvar foto: ${e.message}")
             }

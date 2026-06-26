@@ -61,11 +61,6 @@ class EntryDetailActivity : AppCompatActivity() {
             }
 
 
-            if (binding.root.findViewById<View>(R.id.miniMapView) != null) {
-                binding.miniMapView.visibility = View.GONE
-            }
-
-
             binding.tvNoLocation.visibility = View.VISIBLE
             binding.tvNoLocation.text = entry.getAmbientContextDescription()
         }

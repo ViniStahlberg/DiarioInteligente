@@ -37,9 +37,10 @@ class NewEntryActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            val uriStr = result.data?.getStringExtra(EXTRA_IMAGE_URI)
-            if (!uriStr.isNullOrEmpty()) {
-                capturedPhotoUri = Uri.parse(uriStr)
+            // pega a URI direto do data, não mais de um extra String
+            val uri = result.data?.data
+            if (uri != null) {
+                capturedPhotoUri = uri
                 binding.tvPhotoStatus.text = "✓ Foto capturada"
                 binding.tvPhotoStatus.visibility = View.VISIBLE
             }

@@ -46,7 +46,9 @@ class CameraActivity : AppCompatActivity() {
     private fun returnPhoto(uri: Uri) {
         FeedbackHelper.vibrate(this)
         val result = Intent().apply {
-            putExtra(NewEntryActivity.EXTRA_IMAGE_URI, uri.toString())
+            // passa a URI diretamente (não como String)
+            data = uri
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         setResult(RESULT_OK, result)
         finish()

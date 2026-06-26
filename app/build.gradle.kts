@@ -63,7 +63,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-storage-ktx")
 
     // Biometric
     implementation("androidx.biometric:biometric:1.1.0")
@@ -81,12 +80,6 @@ dependencies {
 
     // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
-
-    // OSMDroid — mapa gratuito sem chave de API
-    implementation("org.osmdroid:osmdroid-android:6.1.18")
-
-    // Localização GPS
-    implementation("com.google.android.gms:play-services-location:21.2.0")
 
     // MPAndroidChart — gráfico de humor
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
