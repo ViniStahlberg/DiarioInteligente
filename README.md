@@ -7,7 +7,7 @@ O **SmartDiary** é uma aplicação Android nativa desenvolvida como projeto fin
 ## 📺 Demonstração em Vídeo
 
 <p align="center">
-  <img src="COLE_O_LINK_DO_GIF_AQUI" alt="Demonstração do SmartDiary" width="300">
+  <img src="https://github.com/user-attachments/assets/6f3d1637-7291-4314-ac4a-ee0bfa10e956" alt="Demonstração do SmartDiary" width="300">
 </p>
 
 
