@@ -45,6 +45,5 @@ O SmartDiary foca em uma dor real: **70% das pessoas não conseguem identificar 
 * **João Henrique Correa Reis** - [LinkedIn](https://www.linkedin.com/in/joao-reis-ads/)
 
 ---
-*Projeto desenvolvido para o IFSP — Campus Jaú (ADS 2025)*
+*Projeto desenvolvido para o IFSP — Campus Araraquara (ADS 2026)*
 
-Espero que esse material ajude a finalizar o seu projeto com chave de ouro! Se precisar de qualquer ajuste nos slides ou no texto, é só me avisar. Parabéns pelo trabalho!
